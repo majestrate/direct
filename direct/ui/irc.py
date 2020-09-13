@@ -133,7 +133,7 @@ class UI(UIBase):
                         if msg.startswith(":a "):
                             dst = msg[3:]
                             print("to {}".format(dst))
-                            self.inform(":lokinet PRIVMSG {} :connecting to {}".format(self.net.channel, dst))
+                            self.inform(":system!system@localhost PRIVMSG {} :connecting to {}".format(self.net.channel, dst))
                             self.net.sendChatTo(dst, "online")
                         return
                     to = to.lower()
@@ -141,7 +141,7 @@ class UI(UIBase):
                     if toaddr:
                         self.net.sendChatTo(toaddr, msg)
                     else:
-                        self.inform(':lokinet PRIVMSG {} :name not found'.format(self.net.channel))
+                        self.inform(':system!system@localhost PRIVMSG {} :name not found'.format(self.net.channel))
             elif fd in self._sockets:
                 state = self._sockets[fd]
                 if 'nick' not in state:
