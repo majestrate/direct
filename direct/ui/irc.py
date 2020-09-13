@@ -65,7 +65,10 @@ def _irc_re_parse(regex, line, upper=False):
         line = line.upper()
     m = re.match(regex, line)
     if m:
-        return m.groups()
+        parts = m.groups()
+        if len(parts) == 1:
+            return parts[0]
+        return parts
 
 irc_parse_away_on = lambda line : _irc_re_parse(_RE_AWAY_ON_CMD, line)
 irc_parse_away_off = lambda line : _irc_re_parse(_RE_AWAY_OFF_CMD, line)
@@ -117,7 +120,7 @@ class UI(UIBase):
             print(fd, line)
             ping = irc_parse_ping(line)
             if ping:
-                sock.send(':lokinet PONG :{}\n'.format(ping[0]).encode('utf-8'))
+                sock.send(':lokinet PONG :{}\n'.format(ping).encode('utf-8'))
             if irc_parse_quit(line):
                 sock.close()
                 self.unregister_fd(fd)
