@@ -44,6 +44,9 @@ class UI:
         if command:
             if line == 'q':
                 self.quit()
+            elif line  == 'c':
+                line = line[1:].strip()
+                self.net.sendChatTo(line, "", type="online")
             elif line.startswith('p'):
                 line = line[1:].strip()
                 self._setCurrentPeer(line)

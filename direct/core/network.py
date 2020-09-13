@@ -17,8 +17,8 @@ class NetCore:
         print("Binding network at {} as {}".format(addr, self.lokiaddr))
         self._lmq.listen_plain(addr)
         self._lmq.add_anonymous_category("direct")
-        self._lmq.add_request_command("direct", "chat", self._on_chat)
-
+        self._lmq.add_request_command_ex("direct", "chat", self._on_chat)
+        self._lmq.add_request_command_ex("direct", "online", self._on_login)
         self._lmq.start()
         self._conns = dict()
         self._writefd = None
@@ -27,8 +27,15 @@ class NetCore:
         self._writefd = fd
 
 
+    def _auth_conn(self, conn):
+        pass
 
-    def _on_chat(self, data):
+    def _on_login(self, data, remote, connid):
+        lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
+        self._addrs[lokiaddr] = connid
+        return "OK"
+
+    def _on_chat(self, data, remote):
         for d in data:
             self._writeUI("(them) {}".format(d))
         return "OK"
@@ -36,7 +43,7 @@ class NetCore:
     def _getConn(self, to, port):
         if to in self._conns:
             return self._conns[to]
-        host = socket.gethostbyname("{}.loki".format(to))
+        host = socket.gethostbyname(to)
         conn = self._lmq.connect_remote("tcp://{}:{}".format(host, port))
         self._conns[to] = conn
         return conn
@@ -45,13 +52,13 @@ class NetCore:
         self._writefd.write("{}\n".format(msg))
         self._writefd.flush()
 
-    def sendChatTo(self, to, data, port=DEFAULT_PORT):
+    def sendChatTo(self, to, data, port=DEFAULT_PORT, type="chat"):
         """
         send chat to remote
         """
         self._writeUI("(you) {}".format(data))
         conn = self._getConn(to, port)
         def send():
-            self._lmq.request(conn, "direct.chat", [data.encode('utf-8')], timeout=5)
+            self._lmq.request(conn, "direct.{}".format(type), [data.encode('utf-8')], timeout=5)
         self._lmq.call_soon(send, None)
         
