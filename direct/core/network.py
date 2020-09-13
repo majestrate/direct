@@ -44,6 +44,9 @@ class NetCore:
             return self._conns[to]
         host = socket.gethostbyname(to)
         conn = self._lmq.connect_remote("tcp://{}:{}".format(host, port))
+        def send():
+            self._lmq.request(conn, "direct.online", [], timeout=5)
+        self._lmq.call_soon(send, None)
         self._conns[to] = conn
         return conn
 

@@ -30,6 +30,7 @@ class UI:
 
 
     def quit(self):
+        self._inform("quitting...")
         self._run = False
 
     def _setCurrentPeer(self, line):
@@ -44,9 +45,6 @@ class UI:
         if command:
             if line == 'q':
                 self.quit()
-            elif line.startswith('c'):
-                line = line[1:].strip()
-                self.net.sendChatTo(line, "", type="online")
             elif line.startswith('p'):
                 line = line[1:].strip()
                 self._setCurrentPeer(line)
@@ -70,6 +68,7 @@ class UI:
 
     def _displayChats(self):
         self.chatwin.clear()
+        self.chatwin.move(1,1)
         for chat in self._chats:
             self.chatwin.addstr(chat.strip())
             self.chatwin.addstr("\n")
@@ -79,9 +78,8 @@ class UI:
         self._inform("your address is {}".format(self.net.lokiaddr))
 
     def run(self):
-        curses.initscr()
-        self.win = curses.newwin(3, 80)
-        self.chatwin = curses.newwin(24, 80, 4, 0)
+        self.win = curses.initscr()
+        self.chatwin = self.win.subwin(3, 1)
         try:
             self.repl()
         except:
@@ -93,8 +91,13 @@ class UI:
         chat = self._chat_reader.readline()
         self._chats.append(chat.strip())
             
+    def reload(self, *args):
+        curses.update_lines_cols()
+        curses.resizeterm(curses.LINES, curses.COLS)
 
     def repl(self):
+        curses.raw()
+        curses.noecho()
         line = ""
         stdin = sys.stdin.fileno()
         p = poll()
@@ -103,6 +106,7 @@ class UI:
         self.win.clear()
         self._showBanner()
         self.win.refresh()
+        self.win.move(1,1)
         while self._run:
             evs = p.poll(100)
             for fd, ev in evs:
@@ -111,20 +115,20 @@ class UI:
                 if fd == self._chat_read:
                     self._updateChats()
                 elif fd == stdin:
-                    k = self.win.getkey(1, 0)
+                    k = self.win.getkey(1,1)
                     if k == '\n':
                         self.process_line(line)
                         line = ""
+                        self.win.deleteln()
+                        self.win.move(1,1)
                         self.win.refresh()
                     elif ord(k) == 127:
                         l = len(line)
                         if l:
                             line = line[:l-1]
-                        self.win.deleteln()
-                        self.win.addstr(line)
+                        self.win.delch()
                     else:
                         line += k
-                        self.win.deleteln()
                         self.win.addstr(line)
             
             self._displayChats()
