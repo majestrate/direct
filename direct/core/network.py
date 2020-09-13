@@ -26,12 +26,10 @@ class NetCore:
     def set_writer(self, fd):
         self._writefd = fd
 
-
-    def _auth_conn(self, conn):
-        pass
-
     def _on_login(self, data, remote, connid):
+        self._writeUI("[accepted from {}]".format(remote))
         lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
+        self._writeUI("[new connection] {} / {}".format(lokiaddr, remote))
         self._addrs[lokiaddr] = connid
         return "OK"
 
