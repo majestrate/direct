@@ -30,7 +30,7 @@ class NetCore:
         self._writeUI("[accepted from {}]".format(remote))
         lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
         self._writeUI("[new connection] {} / {}".format(lokiaddr, remote))
-        self._addrs[lokiaddr] = connid
+        self._conns[lokiaddr] = connid
         return "OK"
 
     def _on_chat(self, data, remote):
