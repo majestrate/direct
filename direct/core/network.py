@@ -34,12 +34,9 @@ class NetCore:
 
     def _on_chat(self, data, remote, connid):
         for k, v in self._conns.items():
-            self._writeUI("{} = {}".format( k, v))
             if v == connid:
                 for d in data:
                     self._writeUI("({}) {}".format(k, d))
-        else:
-            self._writeUI("bad message")
         return "OK"
 
     def _getConn(self, to, port):
