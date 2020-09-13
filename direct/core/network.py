@@ -32,7 +32,6 @@ class NetCore:
     def _on_login(self, data, remote, connid):
         name = data[0]
         lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
-        self._writeUI(type="JOIN", src="{}|{}".format(name, lokiaddr[:4]), dst=self.channel)
         self._conns[lokiaddr] = connid
         self._names[lokiaddr] = name
         self._writeUI("online", src='{}!user@{}'.format(self._names[lokiaddr]+"|"+lokiaddr[:4], lokiaddr), dst=self.name())
