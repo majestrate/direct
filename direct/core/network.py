@@ -34,7 +34,7 @@ class NetCore:
         lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
         self._conns[lokiaddr] = connid
         self._names[lokiaddr] = name
-        self._writeUI("online", src='{}!user@{}'.format(self._names[lokiaddr]+"|"+lokiaddr[:4], lokiaddr), dst=self.name())
+        self._writeUI("", type="JOIN", dst=self.channel, src='{}!user@{}'.format(self._names[lokiaddr]+"|"+lokiaddr[:4], lokiaddr))
         return self.myname
 
     def _on_chat(self, data, remote, connid):
@@ -75,7 +75,9 @@ class NetCore:
         return conn
 
     def _writeUI(self, msg, src="system", dst="you", type="PRIVMSG"):
-        self._writefd.write(":{} {} {} :{}\n".format(src, type, dst, msg))
+        if len(msg) > 0 and msg[0] != ":":
+            msg = ':{}'.format(msg)
+        self._writefd.write(":{} {} {} {}\n".format(src, type, dst, msg))
         self._writefd.flush()
 
     def sendChatTo(self, to, data, port=DEFAULT_PORT, type="chat"):
