@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+test "x$DIRECT_PREFIX" = "x" && export DIRECT_PREFIX="."
+PYTHONPATH=$DIRECT_PREFIX/lib/ python3 -m direct $@

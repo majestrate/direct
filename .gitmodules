@@ -1,0 +1,3 @@
+[submodule "external/pylokimq"]
+	path = external/pylokimq
+	url = https://github.com/majestrate/pylokimq
