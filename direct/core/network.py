@@ -24,7 +24,7 @@ class NetCore:
         self._names = dict()
         self._writefd = None
         self.myname = (kwargs and 'name' in kwargs) and kwargs['name'] or 'anon'
-        self.channel = "$control"
+        self.channel = "#control"
 
     def set_writer(self, fd):
         self._writefd = fd
