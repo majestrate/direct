@@ -23,7 +23,7 @@ _RE_URCLINE = '^:(%s) (%s) ?(%s|%s)? ?:(.+)$' % (_RE_SRC, _RE_CMD, _RE_CHAN, _RE
 _RE_SRC_CMD = '([%s]+)!([~%s]+)@([%s]+)' % ( ( _RE_CHARS, ) * 3 )
 _RE_NICK_CMD = '^NICK :?(%s)' % _RE_NICK
 _RE_USER_CMD = '^USER (%s) [%s\\*]+ [%s\\*]+\s:?%s' % ( _RE_NICK, _RE_CHARS, _RE_CHARS, _RE_NICK )
-_RE_PRIVMSG_CMD = '^PRIVMSG (%s|%s) :?(.+)$' % (_RE_NICK, _RE_CHAN)
+_RE_PRIVMSG_CMD = '^PRIVMSG (.*)\s:(.+)$'
 _RE_JOIN_CMD = '^JOIN (%s)' % _RE_CHAN
 _RE_JOIN_MULTI_CMD = '^JOIN :?(.+)'
 _RE_PART_CMD = '^PART (%s) :?(.+)$' % _RE_CHAN
@@ -59,7 +59,8 @@ def irc_greet(serv, nick, user, motd):
         yield ':{} 372 {} :- {}\n'.format(serv, nick, line)
     yield ':{} 376 {} :RPL_ENDOFMOTD\n'.format(serv, nick)
 
-def _irc_re_parse(regex, line, upper=True):
+def _irc_re_parse(regex, line, upper=False):
+    print("match {} vs {}".format(regex, line))
     if upper:
         line = line.upper()
     m = re.match(regex, line)
@@ -72,7 +73,7 @@ irc_parse_nick_user_serv = lambda line : _irc_re_parse(_RE_SRC_CMD, line)
 irc_parse_channel_name = lambda line : _irc_re_parse(_RE_CHAN, line)
 irc_parse_nick = lambda line : _irc_re_parse(_RE_NICK_CMD, line)
 irc_parse_user = lambda line : _irc_re_parse(_RE_USER_CMD, line)
-irc_parse_privmsg = lambda line : _irc_re_parse(_RE_PRIVMSG_CMD, line, False)
+irc_parse_privmsg = lambda line : _irc_re_parse(_RE_PRIVMSG_CMD, line)
 irc_parse_join = lambda line : _irc_re_parse(_RE_JOIN_CMD, line)
 irc_parse_multi_join = lambda line : _irc_re_parse(_RE_JOIN_MULTI_CMD, line)
 irc_parse_part = lambda line : _irc_re_parse(_RE_PART_CMD, line)
@@ -124,14 +125,18 @@ class UI(UIBase):
                     self._irc_sockets.remove(fd)
             if fd in self._irc_sockets:
                 to, msg = irc_parse_privmsg(line) or (None, None)
-                print(to, msg)
+                print([to,  msg])
                 if to:
+                    print(to)
                     if to == self.net.channel:
-                        if msg.startswith(":a"):
+                        print("to channel")
+                        if msg.startswith(":a "):
                             dst = msg[3:]
+                            print("to {}".format(dst))
+                            self.inform(":lokinet PRIVMSG {} :connecting to {}".format(self.net.channel, dst))
                             self.net.sendChatTo(dst, "online")
-                            self.inform(":lokinet NOTICE {} :connecting to {}".format(self.net.channel, dst))
                         return
+                    to = to.lower()
                     toaddr = self.net.getAddrForName(to)
                     if toaddr:
                         self.net.sendChatTo(toaddr, msg)
