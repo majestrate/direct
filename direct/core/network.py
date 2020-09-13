@@ -33,10 +33,13 @@ class NetCore:
         return "OK"
 
     def _on_chat(self, data, remote, connid):
-        for k in self._conns:
-            if self._conns[k] == connid:
+        for k, v in self._conns.items():
+            self._writeUI("{} = {}".format( k, v))
+            if v == connid:
                 for d in data:
                     self._writeUI("({}) {}".format(k, d))
+        else:
+            self._writeUI("bad message")
         return "OK"
 
     def _getConn(self, to, port):
