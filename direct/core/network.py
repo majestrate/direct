@@ -35,6 +35,7 @@ class NetCore:
         self._writeUI("[new connection] {} / {}".format(name, lokiaddr))
         self._conns[lokiaddr] = connid
         self._names[lokiaddr] = name
+        self._writeUI("online", src='{}!user@{}'.format(self._names[lokiaddr]+"|"+lokiaddr[:4], lokiaddr), dst=self.name())
         return self.myname
 
     def _on_chat(self, data, remote, connid):
