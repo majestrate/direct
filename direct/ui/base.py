@@ -21,6 +21,9 @@ class UIBase:
     def register_fd(self, fd):
         self._poll.register(fd, POLLIN)
 
+    def unregister_fd(self, fd):
+        self._poll.unregister(fd)
+
     def addNet(self, net):
         self.net = net
         self.net.set_writer(self._chat_writer)

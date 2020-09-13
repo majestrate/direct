@@ -24,7 +24,7 @@ class NetCore:
         self._names = dict()
         self._writefd = None
         self.myname = (kwargs and 'name' in kwargs) and kwargs['name'] or 'anon'
-        self._channel = "#chat"
+        self.channel = "$control"
 
     def set_writer(self, fd):
         self._writefd = fd
@@ -41,19 +41,36 @@ class NetCore:
         for addr, c in self._conns.items():
             if c == connid:
                 for d in data:
-                    self._writeUI(d, src='{}!user@{}'.format(self._names[addr]+"|"+addr[:4], addr), dst=self._channel)
+                    self._writeUI(d, src='{}!user@{}'.format(self._names[addr]+"|"+addr[:4], addr), dst=self.name())
         return "OK"
 
+
+    def getAddrForName(self, name):
+        """
+        get loki address for an ircname
+        """
+        parts = name.split("|")
+        if len(parts) != 2:
+            return
+        for addr, name in self._names.items():
+            if addr.startswith(parts[1]) and name == parts[0]:
+                return addr
+    
+    def name(self):
+        addr = self.lokiaddr
+        return '{}!user@{}'.format(self.myname+"|"+addr[:4], addr)
+
     def _getConn(self, to, port):
-        if to in self._conns:
-            return self._conns[to]
-        host = socket.gethostbyname(to)
-        conn = self._lmq.connect_remote("tcp://{}:{}".format(host, port))
         def send():
             name = self._lmq.request(conn, "direct.online", [self.myname.encode("utf-8")], timeout=5)
             name = name[0].decode('utf-8')
             self._names[to] = name
-        self._lmq.add_timer(send, 15)
+        if to in self._conns:
+            self._lmq.call_soon(send, None)
+            return self._conns[to]
+        host = socket.gethostbyname(to)
+        conn = self._lmq.connect_remote("tcp://{}:{}".format(host, port))
+        self._lmq.call_soon(send, None)
         self._conns[to] = conn
         return conn
 
@@ -65,8 +82,8 @@ class NetCore:
         """
         send chat to remote
         """
-        conn = self._getConn(to, port)
         def send():
+            conn = self._getConn(to, port)
             self._lmq.request(conn, "direct.{}".format(type), [data.encode('utf-8')], timeout=5)
         self._lmq.call_soon(send, None)
         
