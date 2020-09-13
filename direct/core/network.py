@@ -27,15 +27,16 @@ class NetCore:
         self._writefd = fd
 
     def _on_login(self, data, remote, connid):
-        self._writeUI("[accepted from {}]".format(remote))
         lokiaddr = socket.getnameinfo((remote, DEFAULT_PORT), socket.AF_INET)[0]
         self._writeUI("[new connection] {} / {}".format(lokiaddr, remote))
         self._conns[lokiaddr] = connid
         return "OK"
 
-    def _on_chat(self, data, remote):
-        for d in data:
-            self._writeUI("(them) {}".format(d))
+    def _on_chat(self, data, remote, connid):
+        for k in self._conns:
+            if self._conns[k] == connid:
+                for d in data:
+                    self._writeUI("({}) {}".format(k, d))
         return "OK"
 
     def _getConn(self, to, port):
