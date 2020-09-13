@@ -41,7 +41,7 @@ class NetCore:
         for addr, c in self._conns.items():
             if c == connid:
                 for d in data:
-                    self._writeUI(d, src='{}!user@{}'.format(self._names[addr], addr), dst=self._channel)
+                    self._writeUI(d, src='{}!user@{}'.format(self._names[addr]+"|"+addr[:4], addr), dst=self._channel)
         return "OK"
 
     def _getConn(self, to, port):
@@ -50,12 +50,10 @@ class NetCore:
         host = socket.gethostbyname(to)
         conn = self._lmq.connect_remote("tcp://{}:{}".format(host, port))
         def send():
-            self._writeUI("[connecting...]")
             name = self._lmq.request(conn, "direct.online", [self.myname.encode("utf-8")], timeout=5)
             name = name[0].decode('utf-8')
             self._names[to] = name
-            self._writeUI(type="JOIN", src=name, dst=self._channel)
-        self._lmq.call_soon(send, None)
+        self._lmq.add_timer(send, 15)
         self._conns[to] = conn
         return conn
 
